@@ -10,6 +10,13 @@
 
 char mesi[]="ABCDEHMLPRST";
 
+void printascelte(){
+    printf("Selezionare una scelta:\n");
+    printf("\t0: Uscire dal programma\n");
+    printf("\t1: Creare un codice con dati personali\n");
+    printf("\t2: Estrarre dati personali da un codice\n\t:  ");
+}
+
 char da_int_a_char(int a){
     return (char)(a + '0');
 }
@@ -54,14 +61,50 @@ void get_nome(char *nome){
     scanf("%s",nome);
 }
 
+void post_nome(char *codice,char *nome){
+    for(int i= 3; i< 6;i++){
+        *(nome + i - 3) = *(codice + i);
+    }
+    *(nome + 3) = '\0';
+}
+
 void get_cognome(char *cognome){
     printf("Inserire il cognome:\t\t\t\t");
     scanf("%s",cognome);
 }
 
+void post_cognome(char *codice,char *cognome){
+    for(int i= 0; i< 3; i++){
+        *(cognome + i) = *(codice + i);
+    }
+    *(cognome + 3) = '\0';
+}
+
 void get_data(int *dd,int *mm,int *yyyy){
     printf("Inserire il giorno di nascita (dd mm yyyy):\t");
     scanf("%d %d %d",dd,mm,yyyy);
+}
+
+void post_date(char *codice,int *dd,int *mm,int *yyyy,char *genere){
+    *yyyy = (int)(*(codice + 6) - '0') * 10;
+    *yyyy += (int) *(codice + 7) - '0';
+    *yyyy += *yyyy > 25 ? 1900 : 2000;
+
+    for(int i= 0; i< 12;i++){
+        if(*(codice +8) == mesi[i]){
+            *mm = i+1;
+        }
+    }
+
+    *dd = (int)(*(codice + 9) - '0') * 10;
+    *dd += (int) *(codice + 10) - '0';
+
+    if(*dd > 40){
+        *genere = 'F';
+        *dd = *dd - 40;
+    }else{
+        *genere = 'M';
+    }
 }
 
 void get_genere(int *dd){
@@ -97,10 +140,36 @@ int get_comune(char *cod_com){
             fclose(fl);
             return 0;
         }
-        
     }
     printf("Codice città non trovato\n");
     
+    fclose(fl);
+    return 0;
+}
+
+int post_comune(char *codice,char *comune){
+    FILE *fl;
+    fl = fopen(FILE_COM,"r");
+
+    if(fl == NULL){
+        printf("Errore nell'apertura file comuni.txt\n");
+        return 1;
+    }
+    
+    char cod_com[4];
+    for(int i= 0; i< 4; i++){
+        *(cod_com + i) = *(codice + i + 11);
+    }
+    while(fgets(comune,MAX_FILE,fl)){
+        if(strstr(comune,cod_com)){
+            fclose(fl);
+            for(int i= 0; i< 5; i++){
+                *(comune + i) = ' ';
+            }
+            return 0;
+        }
+    }
+    printf("Nome città non trovato\n");
     fclose(fl);
     return 0;
 }
@@ -174,7 +243,7 @@ char get_special(char *codice){
                 // scambio pari e dispari 
     }
     
-    return (char)(somma % 26+ 65);
+    return (char)(somma % 26 + 65);
 }
 
 void crea_codice(char *codice,char *nome,char *cognome,int *dd,int *mm,int *yyyy,char *cod_com){
@@ -209,24 +278,69 @@ void crea_codice(char *codice,char *nome,char *cognome,int *dd,int *mm,int *yyyy
     printf("\nCodice fiscale:\t\t%s\n",codice);
 }
 
+void trasforma_diretta(char *codice){
+    char nome[MAX],cognome[MAX],cod_com[4];
+    int giorno,mese,anno;
+    get_nome(nome);
+    get_cognome(cognome);
+    do{
+        get_data(&giorno,&mese,&anno);
+        if(!is_date_valid(&giorno,&mese,&anno)){
+            printf("Reinserire la data di nascita\n");
+        }
+    }while(!is_date_valid(&giorno,&mese,&anno));
+
+    get_genere(&giorno);
+    get_comune(cod_com);
+    crea_codice(codice,nome,cognome,&giorno,&mese,&anno,cod_com);
+}
+
+void trasforma_inversa(char *codice){
+    char nome[4],cognome[4];
+    int giorno,mese,anno;
+    char comune[MAX_FILE];
+    char genere;
+
+    printf("Inserire il codice fiscale:\t");
+    scanf("%s",codice);
+    post_nome(codice,nome);
+    post_cognome(codice,cognome);
+    post_date(codice,&giorno,&mese,&anno,&genere);
+    post_comune(codice,comune);
+    char special = get_special(codice);
+
+    printf("Il nome è %s\n",nome);
+    printf("Il cognome è %s\n",cognome);
+    printf("La data di nascita è %d/%d/%d\n",giorno,mese,anno);
+    printf("Il genere è %c\n",genere);
+    printf("Il comune di nascita è %s",comune);
+    if(special == *(codice + 15)){
+        printf("Carattere di controllo valido: %c\n",special);
+    }else{
+        printf("Carattere di controllo non valido, quello giusto è : %c\n\n",special);
+    }
+}
 
 int main(){
-
-char nome[MAX],cognome[MAX],cod_com[4];
-int giorno,mese,anno;
 char codice[LENGHT+1]; //spazio per il terminatore di stringa che potrebbe causare problemi
-
-printf("\n----\tCalcolatore di codice fiscale----\n\n");
-get_nome(nome);
-get_cognome(cognome);
+printf("\n----\tCalcolatore di codice fiscale\t----\n\n");
+int sce;
 do{
-    get_data(&giorno,&mese,&anno);
-    if(!is_date_valid(&giorno,&mese,&anno)){
-        printf("Reinserire la data di nascita\n");
-    }
-}while(!is_date_valid(&giorno,&mese,&anno));
-
-get_genere(&giorno);
-get_comune(cod_com);
-crea_codice(codice,nome,cognome,&giorno,&mese,&anno,cod_com);
+    printascelte();
+    scanf("%d",&sce);
+    switch(sce){
+        case 0:
+            return 0;
+        case 1:
+            trasforma_diretta(codice);
+            break;
+        case 2:
+            trasforma_inversa(codice);
+            break;
+        default:
+            printf("Scelta non disponibile");
+            break;
+   }
+ 
+}while(sce != 0);
 }

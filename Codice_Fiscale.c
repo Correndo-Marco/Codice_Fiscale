@@ -2,7 +2,8 @@
 #include <ctype.h>
 #include <string.h>
 
-#define POS_FILE "comuni.txt"
+#define FILE_COM "comuni.txt"
+#define FILE_VAL "valori.txt"
 #define LENGHT 16
 #define MAX 50
 #define MAX_FILE 20
@@ -23,7 +24,6 @@ int is_date_valid(int *dd,int *mm,int *yyyy){
     }
     return 0;
 }
-
 
 int is_letter(char a){
     if((a >= 'a' && a <= 'z') || (a >= 'A' && a <= 'Z')){
@@ -50,25 +50,25 @@ int is_vocal(char a){
 }
 
 void get_nome(char *nome){
-    printf("Inserire il nome:\t\t\t");
+    printf("Inserire il nome:\t\t\t\t");
     scanf("%s",nome);
 }
 
 void get_cognome(char *cognome){
-    printf("Inserire il cognome:\t\t\t");
+    printf("Inserire il cognome:\t\t\t\t");
     scanf("%s",cognome);
 }
 
 void get_data(int *dd,int *mm,int *yyyy){
-    printf("Inserire il giorno di nascita (dd mm yyyy):\t\t");
+    printf("Inserire il giorno di nascita (dd mm yyyy):\t");
     scanf("%d %d %d",dd,mm,yyyy);
 }
 
 void get_genere(int *dd){
     char gen;
-    printf("Inserire il genere M/F:\t\t\t");
+    printf("Inserire il genere M/F:\t\t\t\t");
     scanf(" %c",&gen);
-    if(gen == 'F'){
+    if(gen == 'F' || gen == 'f'){
         *dd += 40;
     }
 }
@@ -76,7 +76,7 @@ void get_genere(int *dd){
 int get_comune(char *cod_com){
     char comune[MAX];
     FILE *fl;
-    fl = fopen(POS_FILE,"r");
+    fl = fopen(FILE_COM,"r");
     char buffer[MAX_FILE];
 
     if(fl == NULL){
@@ -149,6 +149,34 @@ void calcola_config(char *cons_cog,char *cons_nom,int *maxcons_cog,int *maxcons_
     }
 }
 
+char get_special(char *codice){
+    FILE *fp;
+    fp = fopen(FILE_VAL,"r");
+
+    if(fp==NULL){
+        printf("Errore nell'apertura del file valori.txt");
+        return 1;
+    }
+
+    char carattere;
+    int valore_pari,valore_dispari;
+    int valori_pari[128]={0},valori_dispari[128]={0};
+    
+    while(fscanf(fp," %c %d %d",&carattere,&valore_pari,&valore_dispari) == 3){
+        *(valori_pari + (int)carattere) = valore_pari;
+        *(valori_dispari + (int)carattere) = valore_dispari;
+    }
+    fclose(fp);
+
+    int somma= 0;
+    for(int i= 0; i< LENGHT - 1; i++){
+        somma += (i % 2 != 0) ? *(valori_pari + (int)*(codice + i)) : *(valori_dispari + (int)*(codice + i)) ;
+                // scambio pari e dispari 
+    }
+    
+    return (char)(somma % 26+ 65);
+}
+
 void crea_codice(char *codice,char *nome,char *cognome,int *dd,int *mm,int *yyyy,char *cod_com){
     char cons1[MAX],voc1[MAX];              //consonanti e vocali del cognome
     char cons2[MAX],voc2[MAX];              //consonanti e vocali del nome
@@ -176,8 +204,8 @@ void crea_codice(char *codice,char *nome,char *cognome,int *dd,int *mm,int *yyyy
         *(codice + i) = *(cod_com + (i - 11));
     }
     
-    //*(codice +15) = get_special()
-
+    *(codice + 15) = get_special(codice);
+    *(codice + 16) = '\0';
     printf("\nCodice fiscale:\t\t%s\n",codice);
 }
 
@@ -186,9 +214,9 @@ int main(){
 
 char nome[MAX],cognome[MAX],cod_com[4];
 int giorno,mese,anno;
-char codice[LENGHT];
+char codice[LENGHT+1]; //spazio per il terminatore di stringa che potrebbe causare problemi
 
-printf("\n----\tCalcolatore di codice fiscale----\n");
+printf("\n----\tCalcolatore di codice fiscale----\n\n");
 get_nome(nome);
 get_cognome(cognome);
 do{

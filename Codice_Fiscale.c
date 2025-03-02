@@ -6,9 +6,54 @@
 #define FILE_VAL "valori.txt"
 #define LENGHT 16
 #define MAX 50
-#define MAX_FILE 20
+#define MAX_FILE 30
 
 char mesi[]="ABCDEHMLPRST";
+
+void printascelte();
+char da_int_a_char(int a);
+int is_date_valid(int *dd,int *mm,int *yyyy);
+int is_letter(char a);
+int is_vocal(char a);
+void get_nome(char *nome);
+void post_nome(char *codice,char *nome);
+void get_cognome(char *cognome);
+void post_cognome(char *codice,char *cognome);
+void get_data(int *dd,int *mm,int *yyyy);
+void post_date(char *codice,int *dd,int *mm,int *yyyy,char *genere);
+void get_genere(int *dd);
+int get_comune(char *cod_com);
+int post_comune(char *codice,char *comune);
+void calcola_lettere(char *elemento,char *consonanti,char *vocali,int *maxcons,int *maxvocali);
+void calcola_config(char *cons_cog,char *cons_nom,int *maxcons_cog,int *maxcons_nom,char *voc_cog,char *voc_nom,int *maxvoc_cog,int *maxvoc_nom,char *config);
+char get_special(char *codice);
+void crea_codice(char *codice,char *nome,char *cognome,int *dd,int *mm,int *yyyy,char *cod_com);
+void trasforma_diretta(char *codice);
+void trasforma_inversa(char *codice);
+
+int main(){
+    char codice[LENGHT+1]; //spazio per il terminatore di stringa che potrebbe causare problemi
+    printf("\n----\tCalcolatore di codice fiscale\t----\n\n");
+    int sce;
+    do{
+        printascelte();
+        scanf("%d",&sce);
+        switch(sce){
+            case 0:
+                return 0;
+            case 1:
+                trasforma_diretta(codice);
+                break;
+            case 2:
+                trasforma_inversa(codice);
+                break;
+            default:
+                printf("Scelta non disponibile");
+                break;
+    }
+    
+    }while(sce != 0);
+}
 
 void printascelte(){
     printf("Selezionare una scelta:\n");
@@ -319,28 +364,4 @@ void trasforma_inversa(char *codice){
     }else{
         printf("Carattere di controllo non valido, quello giusto è : %c\n\n",special);
     }
-}
-
-int main(){
-char codice[LENGHT+1]; //spazio per il terminatore di stringa che potrebbe causare problemi
-printf("\n----\tCalcolatore di codice fiscale\t----\n\n");
-int sce;
-do{
-    printascelte();
-    scanf("%d",&sce);
-    switch(sce){
-        case 0:
-            return 0;
-        case 1:
-            trasforma_diretta(codice);
-            break;
-        case 2:
-            trasforma_inversa(codice);
-            break;
-        default:
-            printf("Scelta non disponibile");
-            break;
-   }
- 
-}while(sce != 0);
 }

@@ -4,8 +4,9 @@
 
 #define FILE_COM "comuni.txt"
 #define FILE_VAL "valori.txt"
-#define LENGHT 16
-#define MAX 50
+#define LENGHT_CF 16
+#define CURRENT_YEAR 2025
+#define MAX_LETTERS 50
 #define MAX_FILE 30
 
 char mesi[]="ABCDEHMLPRST";
@@ -29,10 +30,10 @@ void calcola_config(char *cons_cog,char *cons_nom,int *maxcons_cog,int *maxcons_
 char get_special(char *codice);
 void crea_codice(char *codice,char *nome,char *cognome,int *dd,int *mm,int *yyyy,char *cod_com);
 void trasforma_diretta(char *codice);
-void trasforma_inversa(char *codice);
+int trasforma_inversa(char *codice);
 
 int main(){
-    char codice[LENGHT+1]; //spazio per il terminatore di stringa che potrebbe causare problemi
+    char codice[LENGHT_CF +1]; //spazio per il terminatore di stringa che potrebbe causare problemi
     printf("\n----\tCalcolatore di codice fiscale\t----\n\n");
     int sce;
     do{
@@ -50,8 +51,7 @@ int main(){
             default:
                 printf("Scelta non disponibile");
                 break;
-    }
-    
+        }
     }while(sce != 0);
 }
 
@@ -67,12 +67,20 @@ char da_int_a_char(int a){
 }
 
 int is_date_valid(int *dd,int *mm,int *yyyy){
-    if(*yyyy > 1925 && *yyyy < 2026){
-        if(*mm > 0 && *mm < 13){
-            if(*dd > 0 && *dd < 32){
-                return 1;
-            }
-        }
+    if(*yyyy > CURRENT_YEAR - 100 && *yyyy <= CURRENT_YEAR){
+        switch(*mm){
+            case 4:case 6:case 9:case 11:
+                return (*dd > 0 && *dd <= 30);
+            case 2:
+                if(*yyyy % 400 == 0 || (*yyyy % 4 == 0 && *yyyy % 100 != 0)){
+                    return (*dd > 0 && *dd <= 29);
+                }
+                return (*dd > 0 && *dd <= 28);
+            case 1:case 3:case 5:case 7:case 8:case 10:case 12:
+                return (*dd > 0 && *dd <= 31);
+            default:
+                return 0;
+        }   
     }
     return 0;
 }
@@ -97,8 +105,9 @@ int is_vocal(char a){
                 return 1;
             default:
                 return 0;
-            }
+        }
     }
+    return 0;
 }
 
 void get_nome(char *nome){
@@ -162,7 +171,7 @@ void get_genere(int *dd){
 }
 
 int get_comune(char *cod_com){
-    char comune[MAX];
+    char comune[MAX_LETTERS];
     FILE *fl;
     fl = fopen(FILE_COM,"r");
     char buffer[MAX_FILE];
@@ -208,8 +217,8 @@ int post_comune(char *codice,char *comune){
     while(fgets(comune,MAX_FILE,fl)){
         if(strstr(comune,cod_com)){
             fclose(fl);
-            for(int i= 0; i< 5; i++){
-                *(comune + i) = ' ';
+            for(int i= 0; i< MAX_FILE - 5; i++){
+                *(comune + i) = *(comune + i + 5); //tolgo i primi 5 chars
             }
             return 0;
         }
@@ -283,7 +292,7 @@ char get_special(char *codice){
     fclose(fp);
 
     int somma= 0;
-    for(int i= 0; i< LENGHT - 1; i++){
+    for(int i= 0; i< LENGHT_CF - 1; i++){
         somma += (i % 2 != 0) ? *(valori_pari + (int)*(codice + i)) : *(valori_dispari + (int)*(codice + i)) ;
                 // scambio pari e dispari 
     }
@@ -292,8 +301,8 @@ char get_special(char *codice){
 }
 
 void crea_codice(char *codice,char *nome,char *cognome,int *dd,int *mm,int *yyyy,char *cod_com){
-    char cons1[MAX],voc1[MAX];              //consonanti e vocali del cognome
-    char cons2[MAX],voc2[MAX];              //consonanti e vocali del nome
+    char cons1[MAX_LETTERS],voc1[MAX_LETTERS];              //consonanti e vocali del cognome
+    char cons2[MAX_LETTERS],voc2[MAX_LETTERS];              //consonanti e vocali del nome
     int maxc1= 0,maxv1= 0;                  //numero di cons e voc del cognome
     int maxc2= 0,maxv2= 0;                  //numero di cons e voc del nome
     char config[7];
@@ -324,7 +333,7 @@ void crea_codice(char *codice,char *nome,char *cognome,int *dd,int *mm,int *yyyy
 }
 
 void trasforma_diretta(char *codice){
-    char nome[MAX],cognome[MAX],cod_com[4];
+    char nome[MAX_LETTERS],cognome[MAX_LETTERS],cod_com[4];
     int giorno,mese,anno;
     get_nome(nome);
     get_cognome(cognome);
@@ -340,7 +349,7 @@ void trasforma_diretta(char *codice){
     crea_codice(codice,nome,cognome,&giorno,&mese,&anno,cod_com);
 }
 
-void trasforma_inversa(char *codice){
+int trasforma_inversa(char *codice){
     char nome[4],cognome[4];
     int giorno,mese,anno;
     char comune[MAX_FILE];
@@ -351,6 +360,12 @@ void trasforma_inversa(char *codice){
     post_nome(codice,nome);
     post_cognome(codice,cognome);
     post_date(codice,&giorno,&mese,&anno,&genere);
+        
+    if(!is_date_valid(&giorno,&mese,&anno)){
+        printf("Codice non valido\n");
+        return 1;
+    }
+
     post_comune(codice,comune);
     char special = get_special(codice);
 
@@ -364,4 +379,5 @@ void trasforma_inversa(char *codice){
     }else{
         printf("Carattere di controllo non valido, quello giusto è : %c\n\n",special);
     }
+    return 0;
 }

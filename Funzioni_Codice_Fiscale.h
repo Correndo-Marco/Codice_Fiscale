@@ -6,6 +6,8 @@ char da_int_a_char(int a);
 int is_date_valid(int *dd,int *mm,int *yyyy);
 int is_letter(char a);
 int is_vocal(char a);
+int is_acc(char a);
+char trasforma_accento(char a);
 void get_nome(char *nome);
 void post_nome(char *codice,char *nome);
 void get_cognome(char *cognome);

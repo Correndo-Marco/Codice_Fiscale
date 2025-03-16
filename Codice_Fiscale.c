@@ -11,6 +11,8 @@
 #define MAX_FILE 30
 
 const char mesi[]="ABCDEHMLPRST";
+const char lettere_acc[]="ÀÁàáÈÉèéÌÍìíÒÓòóÙÚùú";
+const char lettere_trasf[]="aaaaeeeeiiiioooouuuu";
 
 int main(){
     char codice[LENGTH_CF +1]; //spazio per il terminatore di stringa che potrebbe causare problemi
@@ -74,9 +76,14 @@ int is_letter(char a){
 }
 
 int is_vocal(char a){
-    if(is_letter(a)){
-        a = tolower(a);
-        switch(a){
+    char c = a;
+    if(is_acc(c)){
+        c = trasforma_accento(c);
+    }
+
+    if(is_letter(c)){
+        c = tolower(c);
+        switch(c){
             case 'a':
             case 'e':
             case 'i':
@@ -90,8 +97,26 @@ int is_vocal(char a){
     return 0;
 }
 
+int is_acc(char a){
+    for(int i=0; i< 20; i++){
+        if(a == *(lettere_acc + i)){
+            return 1;
+        }
+    }
+    return 0;
+}
+
+char trasforma_accento(char a){
+    for(int i= 0; i< 20; i++){
+        if(a == *(lettere_acc + i)){
+            return *(lettere_trasf + i);
+        }
+    }
+    return a;
+}
+
 void get_nome(char *nome){
-    printf("Inserire il nome:\t\t\t\t");
+    printf("Inserire il nome senza accenti:\t\t\t");
     scanf("%s",nome);
 }
 
@@ -103,7 +128,7 @@ void post_nome(char *codice,char *nome){
 }
 
 void get_cognome(char *cognome){
-    printf("Inserire il cognome:\t\t\t\t");
+    printf("Inserire il cognome senza accenti:\t\t");
     scanf("%s",cognome);
 }
 
@@ -210,13 +235,14 @@ int post_comune(char *codice,char *comune){
 
 void calcola_lettere(char *elemento,char *consonanti,char *vocali,int *maxcons,int *maxvocali){
 
-    for(int i=0; *(elemento+i) != '\0';i++){
-        if(is_vocal(*(elemento+i))){
+    for(int i=0; *(elemento+i) != '\0'; i++){
+
+        if(is_vocal(*(elemento+i))){              //vocali
 
             *(vocali + *maxvocali) = *(elemento+i);
             *maxvocali = *maxvocali + 1;
 
-        }else if(is_letter(*(elemento+i))){
+        }else if(is_letter(*(elemento+i))){             //consonanti
 
             *(consonanti + *maxcons) = *(elemento+i);
             *maxcons = *maxcons + 1;

@@ -21,6 +21,8 @@ int main(){
     do{
         printascelte();
         scanf("%d",&sce);
+        codice[0] 
+        = '\0';
         switch(sce){
             case 0:
                 return 0;
@@ -140,7 +142,7 @@ void post_cognome(char *codice,char *cognome){
 }
 
 void get_data(int *dd,int *mm,int *yyyy){
-    printf("Inserire il giorno di nascita (dd mm yyyy):\t");
+    printf("Inserire la data di nascita (dd mm yyyy):\t");
     scanf("%d %d %d",dd,mm,yyyy);
 }
 
@@ -335,7 +337,7 @@ void crea_codice(char *codice,char *nome,char *cognome,int *dd,int *mm,int *yyyy
     
     *(codice + 15) = get_special(codice);
     *(codice + 16) = '\0';
-    printf("\nCodice fiscale:\t\t%s\n",codice);
+    printf("\nCodice fiscale:\t\t%s\n\n",codice);
 }
 
 void trasforma_diretta(char *codice){
@@ -360,9 +362,14 @@ int trasforma_inversa(char *codice){
     int giorno,mese,anno;
     char comune[MAX_FILE];
     char genere;
-
+    
     printf("Inserire il codice fiscale:\t");
     scanf("%s",codice);
+    
+    if(*(codice + LENGTH_CF) != '\0'){
+        printf("Codice non valido\n");
+        return 1;
+    }
     post_nome(codice,nome);
     post_cognome(codice,cognome);
     post_date(codice,&giorno,&mese,&anno,&genere);
@@ -375,13 +382,13 @@ int trasforma_inversa(char *codice){
     post_comune(codice,comune);
     char special = get_special(codice);
 
-    printf("Il nome è %s\n",nome);
+    printf("\nIl nome è %s\n",nome);
     printf("Il cognome è %s\n",cognome);
     printf("La data di nascita è %d/%d/%d\n",giorno,mese,anno);
     printf("Il genere è %c\n",genere);
     printf("Il comune di nascita è %s",comune);
     if(special == *(codice + 15)){
-        printf("Carattere di controllo valido: %c\n",special);
+        printf("Carattere di controllo valido: %c\n\n",special);
     }else{
         printf("Carattere di controllo non valido, quello giusto è : %c\n\n",special);
     }

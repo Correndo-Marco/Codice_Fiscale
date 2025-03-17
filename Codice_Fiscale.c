@@ -21,8 +21,7 @@ int main(){
     do{
         printascelte();
         scanf("%d",&sce);
-        codice[0] 
-        = '\0';
+        
         switch(sce){
             case 0:
                 return 0;
